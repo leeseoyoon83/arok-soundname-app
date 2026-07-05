@@ -256,6 +256,28 @@ function App() {
               >
                 📝 상담신청서 작성
               </button>
+              <button 
+                onClick={() => { 
+                  window.open('https://open.kakao.com/', '_blank'); 
+                  setIsMenuOpen(false); 
+                }}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--secondary)',
+                  border: 'none',
+                  padding: '12px 15px',
+                  textAlign: 'left',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                💬 1:1 상담 신청하기
+              </button>
             </div>
           )}
         </div>
