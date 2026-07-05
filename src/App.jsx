@@ -223,6 +223,31 @@ function App() {
               >
                 📖 이름이 주는 힘
               </button>
+              
+              <hr style={{ border: 'none', borderTop: '1px solid rgba(255,255,255,0.1)', margin: '4px 0' }} />
+              
+              <button 
+                onClick={() => { 
+                  window.open('https://open.kakao.com/', '_blank'); 
+                  setIsMenuOpen(false); 
+                }}
+                style={{
+                  background: 'transparent',
+                  color: 'var(--secondary)',
+                  border: 'none',
+                  padding: '12px 15px',
+                  textAlign: 'left',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontSize: '0.9rem',
+                  fontWeight: 'bold'
+                }}
+                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+              >
+                💬 1:1 상담 신청하기
+              </button>
             </div>
           )}
         </div>
