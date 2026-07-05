@@ -136,7 +136,14 @@ function App() {
       <header className="app-header">
         <div className="brand-wrapper">
           <div className="brand-subtitle">THE SOUND OF BEING</div>
-          <h1 className="brand-title">아름다운 이름</h1>
+          <h1 
+            className="brand-title" 
+            onClick={() => setCurrentView('analyzer')}
+            style={{ cursor: 'pointer', userSelect: 'none' }}
+            title="홈으로 이동"
+          >
+            아름다운 이름
+          </h1>
           <p className="brand-desc">
             나의 삶에 에너지를 더하다.
           </p>
