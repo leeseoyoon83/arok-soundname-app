@@ -1,53 +1,68 @@
 import React, { useState, useEffect } from 'react';
 import NameAnalyzer from './components/NameAnalyzer';
+import IntroPowerOfName from './components/IntroPowerOfName';
+import { supabase } from './supabase';
 
 function App() {
-  const [timeStr, setTimeStr] = useState('00:00:00');
   const [isAdmin, setIsAdmin] = useState(false);
   const [showAdminLogin, setShowAdminLogin] = useState(false);
-  const [adminPassword, setAdminPassword] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [authError, setAuthError] = useState('');
+  const [currentView, setCurrentView] = useState('analyzer');
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // Supabase 로그인 상태 감지
   useEffect(() => {
-    const updateClock = () => {
-      const now = new Date();
-      const hh = String(now.getHours()).padStart(2, '0');
-      const mm = String(now.getMinutes()).padStart(2, '0');
-      const ss = String(now.getSeconds()).padStart(2, '0');
-      setTimeStr(`${hh}:${mm}:${ss}`);
-    };
-    updateClock();
-    const timer = setInterval(updateClock, 1000);
-    return () => clearInterval(timer);
+    if (!supabase) return; // Supabase 설정이 안되어있으면 무시
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAdmin(!!session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setIsAdmin(!!session);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
-  const handleAdminLogin = (e) => {
+  const handleAdminLogin = async (e) => {
     e.preventDefault();
-    if (adminPassword === 'admin1234') { // 예시용 비밀번호
-      setIsAdmin(true);
-      setShowAdminLogin(false);
-      setAdminPassword('');
+    setAuthError('');
+    
+    if (!supabase) {
+      setAuthError('.env.local 파일에 Supabase URL과 KEY를 먼저 입력해주세요!');
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: email,
+      password: password,
+    });
+
+    if (error) {
+      setAuthError('로그인 실패: 이메일이나 비밀번호를 확인해주세요.');
     } else {
-      alert('비밀번호가 일치하지 않습니다.');
+      setShowAdminLogin(false);
+      setEmail('');
+      setPassword('');
     }
   };
 
-  const handleAdminLogout = () => {
-    setIsAdmin(false);
+  const handleAdminLogout = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
   };
 
   return (
     <div className="app-container">
       {/* Floating System Metadata Decorators */}
-      <div className="floating-metadata floating-metadata-tl">
-        <div>RESONANCE SYSTEM / V.05</div>
-        <div style={{ opacity: 0.5, fontSize: '0.55rem', marginTop: '2px' }}>PSYCHOLOGICAL MAPPING</div>
-      </div>
       
       <div className="floating-metadata floating-metadata-tr" style={{ textAlign: 'right', display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px' }}>
-        <div>
-          <div>COORDINATES: 37.5665° N</div>
-          <div style={{ opacity: 0.5, fontSize: '0.55rem', marginTop: '2px' }}>TIME: {timeStr}</div>
-        </div>
         {!isAdmin ? (
           <button 
             onClick={() => setShowAdminLogin(true)}
@@ -83,14 +98,24 @@ function App() {
           <div className="glass-panel" style={{ width: '300px', padding: '2rem' }}>
             <h3 style={{ marginBottom: '1.5rem', textAlign: 'center', fontFamily: 'var(--font-brand)' }}>Admin Login</h3>
             <form onSubmit={handleAdminLogin}>
+              {authError && <div style={{ color: 'red', fontSize: '0.8rem', marginBottom: '1rem', textAlign: 'center' }}>{authError}</div>}
+              <div className="form-group" style={{ marginBottom: '1rem' }}>
+                <input 
+                  type="email" 
+                  className="input-text"
+                  placeholder="Email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoFocus
+                />
+              </div>
               <div className="form-group" style={{ marginBottom: '1.5rem' }}>
                 <input 
                   type="password" 
                   className="input-text"
                   placeholder="Password"
-                  value={adminPassword}
-                  onChange={(e) => setAdminPassword(e.target.value)}
-                  autoFocus
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
               <div style={{ display: 'flex', gap: '1rem' }}>
@@ -118,8 +143,95 @@ function App() {
       </header>
 
       {/* Main Content Area */}
-      <main style={{ flex: 1, display: 'flex', justifyContent: 'center', zIndex: 2 }}>
-        <NameAnalyzer />
+      <main style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', zIndex: 2, width: '100%', position: 'relative' }}>
+        
+        {/* Left Dropdown Menu */}
+        <div style={{ position: 'absolute', top: '0', left: '20px', zIndex: 100 }}>
+          <button 
+            onClick={() => setIsMenuOpen(!isMenuOpen)}
+            style={{
+              background: 'rgba(20, 20, 20, 0.4)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(10px)',
+              color: 'var(--text-main)',
+              padding: '10px 15px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.9rem',
+              transition: 'all 0.3s ease'
+            }}
+            onMouseEnter={(e) => e.currentTarget.style.background = 'rgba(20, 20, 20, 0.6)'}
+            onMouseLeave={(e) => e.currentTarget.style.background = 'rgba(20, 20, 20, 0.4)'}
+          >
+            <span style={{ fontSize: '1.2rem' }}>{isMenuOpen ? '✕' : '☰'}</span> Category
+          </button>
+          {isMenuOpen && (
+            <div style={{
+              position: 'absolute',
+              top: '50px',
+              left: '0',
+              background: 'var(--color-bg-mid)',
+              backdropFilter: 'blur(15px)',
+              border: '1px solid rgba(255, 255, 255, 0.1)',
+              borderRadius: '12px',
+              padding: '0.5rem',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '0.2rem',
+              width: '200px',
+              boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+              animation: 'fadeIn 0.2s ease-out'
+            }}>
+              <button 
+                onClick={() => { setCurrentView('analyzer'); setIsMenuOpen(false); }}
+                style={{
+                  background: currentView === 'analyzer' ? 'var(--primary)' : 'transparent',
+                  color: currentView === 'analyzer' ? '#fff' : 'var(--text-main)',
+                  border: 'none',
+                  padding: '12px 15px',
+                  textAlign: 'left',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontSize: '0.9rem',
+                  fontWeight: currentView === 'analyzer' ? 'bold' : 'normal'
+                }}
+                onMouseEnter={(e) => { if (currentView !== 'analyzer') e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                onMouseLeave={(e) => { if (currentView !== 'analyzer') e.currentTarget.style.background = 'transparent' }}
+              >
+                ✨ 나의 이름 분석하기
+              </button>
+              <button 
+                onClick={() => { setCurrentView('intro'); setIsMenuOpen(false); }}
+                style={{
+                  background: currentView === 'intro' ? 'var(--primary)' : 'transparent',
+                  color: currentView === 'intro' ? '#fff' : 'var(--text-main)',
+                  border: 'none',
+                  padding: '12px 15px',
+                  textAlign: 'left',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  transition: 'all 0.2s',
+                  fontSize: '0.9rem',
+                  fontWeight: currentView === 'intro' ? 'bold' : 'normal'
+                }}
+                onMouseEnter={(e) => { if (currentView !== 'intro') e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                onMouseLeave={(e) => { if (currentView !== 'intro') e.currentTarget.style.background = 'transparent' }}
+              >
+                📖 이름이 주는 힘
+              </button>
+            </div>
+          )}
+        </div>
+
+        {currentView === 'intro' ? (
+          <IntroPowerOfName onStartAnalysis={() => setCurrentView('analyzer')} />
+        ) : (
+          <NameAnalyzer />
+        )}
       </main>
 
       {/* Premium Footer */}
