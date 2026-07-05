@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import NameAnalyzer from './components/NameAnalyzer';
 import IntroPowerOfName from './components/IntroPowerOfName';
+import ConsultationForm from './components/ConsultationForm';
 import { supabase } from './supabase';
 
 function App() {
@@ -228,12 +229,12 @@ function App() {
               
               <button 
                 onClick={() => { 
-                  window.open('https://open.kakao.com/', '_blank'); 
+                  setCurrentView('consultation'); 
                   setIsMenuOpen(false); 
                 }}
                 style={{
-                  background: 'transparent',
-                  color: 'var(--secondary)',
+                  background: currentView === 'consultation' ? 'var(--primary)' : 'transparent',
+                  color: currentView === 'consultation' ? '#fff' : 'var(--secondary)',
                   border: 'none',
                   padding: '12px 15px',
                   textAlign: 'left',
@@ -243,10 +244,10 @@ function App() {
                   fontSize: '0.9rem',
                   fontWeight: 'bold'
                 }}
-                onMouseEnter={(e) => { e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
-                onMouseLeave={(e) => { e.currentTarget.style.background = 'transparent' }}
+                onMouseEnter={(e) => { if (currentView !== 'consultation') e.currentTarget.style.background = 'rgba(255,255,255,0.05)' }}
+                onMouseLeave={(e) => { if (currentView !== 'consultation') e.currentTarget.style.background = 'transparent' }}
               >
-                💬 1:1 상담 신청하기
+                📝 상담신청서 작성
               </button>
             </div>
           )}
@@ -254,6 +255,8 @@ function App() {
 
         {currentView === 'intro' ? (
           <IntroPowerOfName onStartAnalysis={() => setCurrentView('analyzer')} />
+        ) : currentView === 'consultation' ? (
+          <ConsultationForm onBack={() => setCurrentView('analyzer')} />
         ) : (
           <NameAnalyzer />
         )}
